@@ -10,6 +10,7 @@ Supported object types (determined by the 'object_type' column in the CSV):
     ap          - Application Profile
     epg         - Endpoint Group
     static_path - Static port binding + full interface policy stack (UC1)
+    vpc         - vPC port channel between ESXi host and two leaf switches (UC2)
 
 CSV columns:
     object_type, tenant, environment, bd_name/ap_name/epg_name/server_name,
@@ -122,11 +123,26 @@ def generate_static_paths(rows):
         print(f"  Generated: {output_file.relative_to(REPO_ROOT)}")
 
 
+def generate_vpcs(rows):
+    env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+    template = env.get_template("vpc_policy_group.yml.j2")
+
+    for row in rows:
+        output_dir = (
+            INTENT_DIR / row["environment"] / "tenants" / row["tenant"] / "vpc_policy_groups"
+        )
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / f"{row['server_name']}-vPC.yml"
+        output_file.write_text(template.render(**row))
+        print(f"  Generated: {output_file.relative_to(REPO_ROOT)}")
+
+
 GENERATORS = {
     "bd":          generate_bds,
     "ap":          generate_aps,
     "epg":         generate_epgs,
     "static_path": generate_static_paths,
+    "vpc":         generate_vpcs,
 }
 
 

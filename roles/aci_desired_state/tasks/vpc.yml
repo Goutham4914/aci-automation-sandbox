@@ -1,0 +1,198 @@
+---
+# UC2 — vPC port channel: ESXi host to two leaf switches (static path binding)
+# Expects vpc var loaded from intent file in deploy.yml pre_tasks
+
+# ── Shared objects (idempotent — safe to run even if UC1 already created these) ──
+
+- name: Configure VLAN pool
+  cisco.aci.aci_vlan_pool:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    pool:           "{{ vpc.vlan_pool.name }}"
+    pool_allocation_mode: "{{ vpc.vlan_pool.alloc_mode }}"
+    state: present
+
+- name: Configure VLAN pool encap blocks
+  cisco.aci.aci_vlan_pool_encap_block:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    pool:           "{{ vpc.vlan_pool.name }}"
+    pool_allocation_mode: "{{ vpc.vlan_pool.alloc_mode }}"
+    block_start:    "{{ item.from }}"
+    block_end:      "{{ item.to }}"
+    state: present
+  loop: "{{ vpc.vlan_pool.encap_blocks }}"
+
+- name: Configure physical domain
+  cisco.aci.aci_domain:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    domain:         "{{ vpc.domain.name }}"
+    domain_type:    "{{ vpc.domain.type }}"
+    state: present
+
+- name: Bind domain to VLAN pool
+  cisco.aci.aci_domain_to_vlan_pool:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    domain:         "{{ vpc.domain.name }}"
+    domain_type:    "{{ vpc.domain.type }}"
+    pool:           "{{ vpc.vlan_pool.name }}"
+    pool_allocation_mode: "{{ vpc.vlan_pool.alloc_mode }}"
+    state: present
+
+- name: Configure AEP
+  cisco.aci.aci_aep:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    aep:            "{{ vpc.aep.name }}"
+    state: present
+
+- name: Bind AEP to domain
+  cisco.aci.aci_aep_to_domain:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    aep:            "{{ vpc.aep.name }}"
+    domain:         "{{ vpc.domain.name }}"
+    domain_type:    "{{ vpc.domain.type }}"
+    state: present
+
+# ── vPC specific objects ───────────────────────────────────────────────────────
+
+- name: Configure vPC protection group (explicit vPC domain between leaf pair)
+  cisco.aci.aci_switch_policy_vpc_protection_group:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    protection_group:    "{{ vpc.vpc_protection_group.name }}"
+    protection_group_id: "{{ vpc.vpc_protection_group.id }}"
+    switch_1_id:    "{{ vpc.vpc_protection_group.leaf_1 }}"
+    switch_2_id:    "{{ vpc.vpc_protection_group.leaf_2 }}"
+    state: present
+
+- name: Configure vPC interface policy group (lag_type node)
+  cisco.aci.aci_interface_policy_leaf_policy_group:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    policy_group:   "{{ vpc.interface_policy_group.name }}"
+    lag_type:       "{{ vpc.interface_policy_group.lag_type }}"
+    link_level_policy: "{{ vpc.interface_policy_group.link_level_policy }}"
+    lacp_policy:    "{{ vpc.lacp_policy }}"
+    cdp_policy:     "{{ vpc.interface_policy_group.cdp_policy }}"
+    lldp_policy:    "{{ vpc.interface_policy_group.lldp_policy }}"
+    aep:            "{{ vpc.aep.name }}"
+    state: present
+
+- name: Configure leaf interface profile
+  cisco.aci.aci_interface_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_interface_profile: "{{ vpc.leaf_interface_profile.name }}"
+    state: present
+
+- name: Configure interface selector (port block)
+  cisco.aci.aci_access_port_to_interface_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_interface_profile: "{{ vpc.leaf_interface_profile.name }}"
+    access_port_selector:   "{{ vpc.interface_policy_group.name }}-selector"
+    policy_group:           "{{ vpc.interface_policy_group.name }}"
+    state: present
+
+- name: Configure switch profile
+  cisco.aci.aci_switch_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_profile:   "{{ vpc.switch_profile.name }}"
+    state: present
+
+- name: Associate leaf selectors to switch profile (leaf 1)
+  cisco.aci.aci_switch_leaf_selector:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_profile:   "{{ vpc.switch_profile.name }}"
+    leaf:           "{{ vpc.vpc_protection_group.leaf_1 }}-selector"
+    leaf_node_blk:  "{{ vpc.vpc_protection_group.leaf_1 }}-blk"
+    from:           "{{ vpc.vpc_protection_group.leaf_1 }}"
+    to:             "{{ vpc.vpc_protection_group.leaf_1 }}"
+    state: present
+
+- name: Associate leaf selectors to switch profile (leaf 2)
+  cisco.aci.aci_switch_leaf_selector:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_profile:   "{{ vpc.switch_profile.name }}"
+    leaf:           "{{ vpc.vpc_protection_group.leaf_2 }}-selector"
+    leaf_node_blk:  "{{ vpc.vpc_protection_group.leaf_2 }}-blk"
+    from:           "{{ vpc.vpc_protection_group.leaf_2 }}"
+    to:             "{{ vpc.vpc_protection_group.leaf_2 }}"
+    state: present
+
+- name: Bind interface profile to switch profile
+  cisco.aci.aci_interface_selector_to_switch_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_profile:   "{{ vpc.switch_profile.name }}"
+    interface_selector: "{{ vpc.leaf_interface_profile.name }}"
+    state: present
+
+# ── EPG static vPC path binding ───────────────────────────────────────────────
+
+- name: Configure EPG static vPC path binding
+  cisco.aci.aci_static_binding_to_epg:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    tenant:         "{{ vpc.tenant }}"
+    ap:             "{{ vpc.ap }}"
+    epg:            "{{ vpc.epg }}"
+    pod_id:         "{{ vpc.pod }}"
+    leafs:          "{{ vpc.leaf_1 }}-{{ vpc.leaf_2 }}"
+    interface:      "{{ vpc.interface_policy_group.name }}"
+    encap:          "{{ vpc.encap }}"
+    interface_mode: "{{ vpc.mode }}"
+    interface_type: vpc
+    state: present

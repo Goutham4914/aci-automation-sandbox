@@ -1,0 +1,49 @@
+---
+vpc:
+  description: "{{ description }}"
+
+  vlan_pool:
+    name: {{ vlan_pool_name }}
+    alloc_mode: static
+    encap_blocks:
+      - from: vlan-{{ vlan_from }}
+        to: vlan-{{ vlan_to }}
+
+  domain:
+    name: {{ domain_name }}
+    type: phys
+
+  aep:
+    name: {{ aep_name }}
+
+  lacp_policy: {{ lacp_policy }}
+
+  interface_policy_group:
+    name: {{ server_name }}-vPC-IPG
+    lag_type: node
+    link_level_policy: {{ link_level_policy }}
+    cdp_policy: {{ cdp_policy }}
+    lldp_policy: {{ lldp_policy }}
+
+  vpc_protection_group:
+    name: LEAF{{ leaf_1 }}-{{ leaf_2 }}-vPC
+    id: {{ vpc_id }}
+    leaf_1: {{ leaf_1 }}
+    leaf_2: {{ leaf_2 }}
+
+  leaf_interface_profile:
+    name: {{ server_name }}-vPC-IntP
+    port: {{ interface }}
+
+  switch_profile:
+    name: LEAF{{ leaf_1 }}-{{ leaf_2 }}-SwP
+
+  tenant: {{ tenant }}
+  ap: {{ ap }}
+  epg: {{ epg }}
+  pod: {{ pod }}
+  leaf_1: {{ leaf_1 }}
+  leaf_2: {{ leaf_2 }}
+  interface: {{ interface }}
+  encap: vlan-{{ encap_vlan }}
+  mode: {{ mode }}

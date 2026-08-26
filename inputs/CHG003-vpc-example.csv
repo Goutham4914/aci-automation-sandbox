@@ -1,0 +1,3 @@
+object_type,tenant,environment,server_name,vlan_pool_name,vlan_from,vlan_to,domain_name,aep_name,lacp_policy,link_level_policy,cdp_policy,lldp_policy,vpc_id,leaf_1,leaf_2,interface,ap,epg,pod,encap_vlan,mode,description
+vpc,PROD-TENANT,prod,ESXI01,PROD-VLAN-POOL,100,200,PROD-PHY-DOMAIN,PROD-AEP,LACP-ACTIVE,10G-AUTO,CDP-ON,LLDP-ON,1,101,102,eth1/1,PROD-APP,WEB-EPG,1,100,regular,ESXI01 vPC across leaf 101 and 102
+vpc,PROD-TENANT,prod,ESXI02,PROD-VLAN-POOL,100,200,PROD-PHY-DOMAIN,PROD-AEP,LACP-ACTIVE,10G-AUTO,CDP-ON,LLDP-ON,1,101,102,eth1/2,PROD-APP,WEB-EPG,1,100,regular,ESXI02 vPC across leaf 101 and 102
