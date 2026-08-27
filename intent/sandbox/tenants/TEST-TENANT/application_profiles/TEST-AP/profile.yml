@@ -1,0 +1,5 @@
+---
+ap:
+  name: TEST-AP
+  state: present
+  description: "Test application profile for sandbox validation"

@@ -1,0 +1,19 @@
+---
+- name: Load VRF vars from file
+  ansible.builtin.include_vars:
+    file: "{{ vrf_file }}"
+    name: vrf_data
+
+- name: Configure VRF - {{ vrf_data.vrf.name }}
+  cisco.aci.aci_vrf:
+    host:                      "{{ ansible_host }}"
+    username:                  "{{ ansible_user }}"
+    password:                  "{{ ansible_password }}"
+    validate_certs:            "{{ aci_validate_certs }}"
+    output_level:              "{{ aci_output_level }}"
+    tenant:                    "{{ tenant.name }}"
+    vrf:                       "{{ vrf_data.vrf.name }}"
+    description:               "{{ vrf_data.vrf.description | default(omit) }}"
+    policy_control_preference: "{{ vrf_data.vrf.policy_control_preference | default('enforced') }}"
+    policy_control_direction:  "{{ vrf_data.vrf.policy_control_direction | default('ingress') }}"
+    state:                     "{{ force_state if force_state else vrf_data.vrf.state | default('present') }}"

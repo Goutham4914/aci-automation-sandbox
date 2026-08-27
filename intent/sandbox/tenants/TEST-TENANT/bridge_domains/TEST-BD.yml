@@ -1,0 +1,10 @@
+---
+bd:
+  name: TEST-BD
+  vrf: TEST-VRF
+  state: present
+  description: "Test bridge domain for sandbox validation"
+  subnets:
+    - gateway: 192.168.100.1
+      mask: 24
+      scope: private

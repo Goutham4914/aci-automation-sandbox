@@ -1,0 +1,5 @@
+---
+tenant:
+  name: TEST-TENANT
+  state: present
+  description: "Sandbox test tenant for ACI automation validation"

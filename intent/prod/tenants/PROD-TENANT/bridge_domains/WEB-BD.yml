@@ -5,5 +5,6 @@ bd:
   state: present
   description: "Web tier bridge domain"
   subnets:
-    - gateway: 10.1.1.1/24
+    - gateway: 10.1.1.1
+      mask: 24
       scope: private

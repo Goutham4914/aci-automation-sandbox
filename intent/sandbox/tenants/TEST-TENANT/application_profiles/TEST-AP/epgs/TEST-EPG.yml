@@ -1,0 +1,6 @@
+---
+epg:
+  name: TEST-EPG
+  bd: TEST-BD
+  state: present
+  description: "Test EPG for sandbox validation"

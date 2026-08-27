@@ -1,0 +1,22 @@
+---
+- name: Find VRF intent files
+  ansible.builtin.find:
+    paths: "{{ tenant_dir }}/vrfs"
+    patterns: "*.yml"
+  register: vrf_files
+  delegate_to: localhost
+  when: target_file | length == 0
+
+- name: Set VRF file list (scoped)
+  ansible.builtin.set_fact:
+    vrf_files:
+      files:
+        - path: "{{ playbook_dir }}/../{{ target_file }}"
+  when: target_file | length > 0 and scoped_type == 'vrfs'
+
+- name: Apply each VRF
+  ansible.builtin.include_tasks: _apply_vrf.yml
+  loop: "{{ vrf_files.files | map(attribute='path') | list }}"
+  loop_control:
+    loop_var: vrf_file
+  when: vrf_files.files | default([]) | length > 0

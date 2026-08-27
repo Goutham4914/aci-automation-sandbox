@@ -4,9 +4,9 @@
 #
 # AWX extra vars:
 #   deploy_mode : main | static_path | vpc | l2out | l3out
-#   deploy_env  : lab | prod
-#   tenant_path : e.g. intent/prod/tenants/PROD-TENANT
-#   intent_file : e.g. intent/prod/tenants/PROD-TENANT/bridge_domains/WEB-BD.yml
+#   deploy_env  : lab | prod | sandbox
+#   tenant_path : e.g. intent/sandbox/tenants/TEST-TENANT
+#   intent_file : e.g. intent/sandbox/tenants/TEST-TENANT/bridge_domains/TEST-BD.yml
 #                 (required for scoped deploys, optional for deploy_mode=main full reconcile)
 #   change_id   : e.g. CHG001 (audit reference only)
 #

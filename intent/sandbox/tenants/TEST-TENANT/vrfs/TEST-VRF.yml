@@ -1,0 +1,7 @@
+---
+vrf:
+  name: TEST-VRF
+  state: present
+  description: "Test VRF for sandbox validation"
+  policy_control_preference: enforced
+  policy_control_direction: ingress

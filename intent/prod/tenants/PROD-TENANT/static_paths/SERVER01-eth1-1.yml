@@ -6,8 +6,8 @@ static_path:
     name: PROD-VLAN-POOL
     alloc_mode: static
     encap_blocks:
-      - from: vlan-100
-        to: vlan-200
+      - from: 100
+        to: 200
 
   domain:
     name: PROD-PHY-DOMAIN
@@ -29,6 +29,6 @@ static_path:
   epg: WEB-EPG
   pod: 1
   leaf: 101
-  interface: eth1/1
-  encap: vlan-100
+  interface: 1/1
+  encap: 100
   mode: regular                 # regular (trunk), native (access untagged), untagged

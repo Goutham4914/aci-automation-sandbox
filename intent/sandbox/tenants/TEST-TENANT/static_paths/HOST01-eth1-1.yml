@@ -1,0 +1,40 @@
+---
+static_path:
+  description: "HOST01 eth1/1 on Leaf101"
+
+  vlan_pool:
+    name: TEST-VLAN-POOL
+    alloc_mode: static
+    encap_blocks:
+      - from: 100
+        to: 200
+
+  domain:
+    name: TEST-PHY-DOMAIN
+    type: phys
+
+  aep:
+    name: TEST-AEP
+
+  interface_policy_group:
+    name: HOST01-IPG
+    lag_type: leaf
+    link_level_policy: default
+    cdp_policy: default
+    lldp_policy: default
+
+  leaf_interface_profile:
+    name: LEAF101-IntP
+
+  switch_profile:
+    name: LEAF101-SwP
+
+  # EPG static binding
+  tenant: TEST-TENANT
+  ap: TEST-AP
+  epg: TEST-EPG
+  pod: 1
+  leaf: 101
+  interface: 1/1
+  encap: 100
+  mode: regular

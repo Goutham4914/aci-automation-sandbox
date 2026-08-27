@@ -179,6 +179,20 @@
 
 # ── EPG static vPC path binding ───────────────────────────────────────────────
 
+- name: Bind EPG to physical domain
+  cisco.aci.aci_epg_to_domain:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    tenant:         "{{ vpc.tenant }}"
+    ap:             "{{ vpc.ap }}"
+    epg:            "{{ vpc.epg }}"
+    domain:         "{{ vpc.domain.name }}"
+    domain_type:    "{{ vpc.domain.type }}"
+    state: present
+
 - name: Configure EPG static vPC path binding
   cisco.aci.aci_static_binding_to_epg:
     host:           "{{ ansible_host }}"
@@ -192,7 +206,7 @@
     pod_id:         "{{ vpc.pod }}"
     leafs:          "{{ vpc.leaf_1 }}-{{ vpc.leaf_2 }}"
     interface:      "{{ vpc.interface_policy_group.name }}"
-    encap:          "{{ vpc.encap }}"
+    encap_id:       "{{ vpc.encap }}"
     interface_mode: "{{ vpc.mode }}"
     interface_type: vpc
     state: present

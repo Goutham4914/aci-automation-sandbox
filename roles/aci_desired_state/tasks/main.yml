@@ -12,24 +12,27 @@
   when: deploy_mode == 'vpc'
 
 # ── UC3: L2Out ────────────────────────────────────────────────────────────────
-- import_tasks: l2out.yml
+- include_tasks: l2out.yml
   when: deploy_mode == 'l2out'
 
 # ── UC4: L3Out ────────────────────────────────────────────────────────────────
-- import_tasks: l3out.yml
+- include_tasks: l3out.yml
   when: deploy_mode == 'l3out'
 
-# ── Tenant objects: BD, AP, EPG, contract ────────────────────────────────────
+# ── Tenant objects: VRF, BD, AP, EPG, contract ───────────────────────────────
 - block:
     - import_tasks: tenant.yml
 
     - name: Determine scoped object type
       ansible.builtin.set_fact:
         scoped_type: >-
-          {{ target_file | regex_search('/(bridge_domains|application_profiles|contracts|epgs)/') | regex_replace('/', '') }}
+          {{ target_file | regex_search('/(vrfs|bridge_domains|application_profiles|contracts|epgs)/') | regex_replace('/', '') }}
       when: target_file | length > 0
 
     # Scoped deploy — single file
+    - import_tasks: vrf.yml
+      when: target_file | length > 0 and scoped_type == 'vrfs'
+
     - import_tasks: bridge_domain.yml
       when: target_file | length > 0 and scoped_type == 'bridge_domains'
 
@@ -43,6 +46,9 @@
       when: target_file | length > 0 and scoped_type == 'contracts'
 
     # Full tenant reconciliation — no intent_file set
+    - import_tasks: vrf.yml
+      when: target_file | length == 0
+
     - import_tasks: bridge_domain.yml
       when: target_file | length == 0
 

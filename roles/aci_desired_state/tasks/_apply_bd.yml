@@ -27,6 +27,7 @@
     tenant:         "{{ tenant.name }}"
     bd:             "{{ bd_data.bd.name }}"
     gateway:        "{{ item.gateway }}"
+    mask:           "{{ item.mask }}"
     scope:          "{{ item.scope | default('private') }}"
     state:          "{{ force_state if force_state else bd_data.bd.state | default('present') }}"
   loop: "{{ bd_data.bd.subnets | default([]) }}"

@@ -1,0 +1,10 @@
+---
+all:
+  children:
+    sandbox_apic:
+      hosts:
+        sandboxapicdc.cisco.com:
+          ansible_host: sandboxapicdc.cisco.com
+          ansible_connection: local
+          ansible_user: "{{ lookup('env', 'ACI_USER') | default('admin') }}"
+          ansible_password: "{{ lookup('env', 'ACI_PASSWORD') }}"

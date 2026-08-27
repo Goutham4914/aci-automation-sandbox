@@ -88,6 +88,77 @@
     aep:            "{{ static_path.aep.name }}"
     state: present
 
+- name: Configure leaf interface profile
+  cisco.aci.aci_interface_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_interface_profile: "{{ static_path.leaf_interface_profile.name }}"
+    state: present
+
+- name: Configure interface selector (port block)
+  cisco.aci.aci_access_port_to_interface_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_interface_profile: "{{ static_path.leaf_interface_profile.name }}"
+    access_port_selector:   "{{ static_path.interface_policy_group.name }}-selector"
+    policy_group:           "{{ static_path.interface_policy_group.name }}"
+    state: present
+
+- name: Configure switch profile
+  cisco.aci.aci_switch_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_profile:   "{{ static_path.switch_profile.name }}"
+    state: present
+
+- name: Associate leaf selector to switch profile
+  cisco.aci.aci_switch_leaf_selector:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_profile:   "{{ static_path.switch_profile.name }}"
+    leaf:           "{{ static_path.leaf }}-selector"
+    leaf_node_blk:  "{{ static_path.leaf }}-blk"
+    from:           "{{ static_path.leaf }}"
+    to:             "{{ static_path.leaf }}"
+    state: present
+
+- name: Bind interface profile to switch profile
+  cisco.aci.aci_interface_selector_to_switch_policy_leaf_profile:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    leaf_profile:   "{{ static_path.switch_profile.name }}"
+    interface_selector: "{{ static_path.leaf_interface_profile.name }}"
+    state: present
+
+- name: Bind EPG to physical domain
+  cisco.aci.aci_epg_to_domain:
+    host:           "{{ ansible_host }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: "{{ aci_validate_certs }}"
+    output_level:   "{{ aci_output_level }}"
+    tenant:         "{{ static_path.tenant }}"
+    ap:             "{{ static_path.ap }}"
+    epg:            "{{ static_path.epg }}"
+    domain:         "{{ static_path.domain.name }}"
+    domain_type:    "{{ static_path.domain.type }}"
+    state: present
+
 - name: Configure EPG static path binding
   cisco.aci.aci_static_binding_to_epg:
     host:           "{{ ansible_host }}"
@@ -101,7 +172,7 @@
     pod_id:         "{{ static_path.pod }}"
     leafs:          "{{ static_path.leaf }}"
     interface:      "{{ static_path.interface }}"
-    encap:          "{{ static_path.encap }}"
+    encap_id:       "{{ static_path.encap }}"
     interface_mode: "{{ static_path.mode }}"
     interface_type: switch_port
     state: present
