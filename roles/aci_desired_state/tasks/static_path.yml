@@ -108,6 +108,11 @@
     leaf_interface_profile: "{{ static_path.leaf_interface_profile.name }}"
     access_port_selector:   "{{ static_path.interface_policy_group.name }}-selector"
     policy_group:           "{{ static_path.interface_policy_group.name }}"
+    port_blk:               "{{ static_path.interface_policy_group.name }}-blk"
+    from_port:              "{{ static_path.interface.split('/')[1] }}"
+    to_port:                "{{ static_path.interface.split('/')[1] }}"
+    from_card:              "{{ static_path.interface.split('/')[0] }}"
+    to_card:                "{{ static_path.interface.split('/')[0] }}"
     state: present
 
 - name: Configure switch profile

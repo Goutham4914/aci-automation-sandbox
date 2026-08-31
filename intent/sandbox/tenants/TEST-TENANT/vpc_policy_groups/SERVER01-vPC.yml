@@ -1,0 +1,48 @@
+---
+vpc:
+  description: "SERVER01 vPC port channel across Leaf101 and Leaf102"
+
+  vlan_pool:
+    name: TEST-VLAN-POOL
+    alloc_mode: static
+    encap_blocks:
+      - from: 100
+        to: 200
+
+  domain:
+    name: TEST-PHY-DOMAIN
+    type: phys
+
+  aep:
+    name: TEST-AEP
+
+  lacp_policy: default
+
+  interface_policy_group:
+    name: SERVER01-vPC-IPG
+    lag_type: node
+    link_level_policy: default
+    cdp_policy: default
+    lldp_policy: default
+
+  vpc_protection_group:
+    name: LEAF101-102-vPC
+    id: 10
+    leaf_1: 101
+    leaf_2: 102
+
+  leaf_interface_profile:
+    name: SERVER01-vPC-IntP
+
+  switch_profile:
+    name: LEAF101-102-SwP
+
+  # EPG static vPC path binding
+  tenant: TEST-TENANT
+  ap: TEST-AP
+  epg: TEST-EPG
+  pod: 1
+  leaf_1: 101
+  leaf_2: 102
+  encap: 100
+  mode: regular

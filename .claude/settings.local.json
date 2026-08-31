@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /home/t949655/)",
+      "Read(///wsl.localhost/Ubuntu/home/**)",
+      "Bash(ls /home/ && whoami && pwd)",
+      "Read(///wsl.localhost/Ubuntu//**)",
+      "Bash(find //wsl.localhost/Ubuntu/home/t949655/aci-automation -type f | sort)",
+      "Read(///wsl.localhost/Ubuntu/home/t949655/**)",
+      "Bash(ls -la //wsl.localhost/Ubuntu/home/t949655/aci-automation/playbooks/ //wsl.localhost/Ubuntu/home/t949655/aci-automation/inputs/ //wsl.localhost/Ubuntu/home/t949655/aci-automation/intent/ //wsl.localhost/Ubuntu/home/t949655/aci-automation/roles/ //wsl.localhost/Ubuntu/home/t949655/aci-automation/collections/ //wsl.localhost/Ubuntu/home/t949655/aci-automation/scripts/ //wsl.localhost/Ubuntu/home/t949655/aci-automation/templates/)",
+      "Read(///wsl.localhost/Ubuntu/home/t949655/aci-automation/**)",
+      "Bash(mkdir -p /home/t949655/aci-automation/intent/sandbox/tenants/TEST-TENANT/bridge_domains)",
+      "Bash(mkdir -p /home/t949655/aci-automation/intent/sandbox/tenants/TEST-TENANT/vrfs)",
+      "Bash(mkdir -p /home/t949655/aci-automation/intent/sandbox/tenants/TEST-TENANT/application_profiles/TEST-AP/epgs)",
+      "Bash(cd /home/t949655/aci-automation && mkdir -p intent/sandbox/tenants/TEST-TENANT/bridge_domains intent/sandbox/tenants/TEST-TENANT/vrfs intent/sandbox/tenants/TEST-TENANT/application_profiles/TEST-AP/epgs)",
+      "Bash(git config *)",
+      "Bash(gh repo *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(start \"\" \"C:\\\\Users\\\\t949655\\\\AppData\\\\Local\\\\Temp\\\\aci-ansible-flow.html\")"
+    ]
+  }
+}
