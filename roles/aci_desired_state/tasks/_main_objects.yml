@@ -4,40 +4,37 @@
 
 - include_tasks: tenant.yml
 
-- name: Determine scoped object type
-  ansible.builtin.set_fact:
-    scoped_type: >-
-      {{ target_file | regex_search('/(vrfs|bridge_domains|application_profiles|contracts|epgs)/') | regex_replace('/', '') }}
+# Scoped deploy — dynamically build task filename from scoped_type
+- block:
+    - name: Determine scoped object type
+      ansible.builtin.set_fact:
+        scoped_type: >-
+          {{ target_file | regex_search('/(vrfs|bridge_domains|application_profiles|contracts|epgs)/') | regex_replace('/', '') }}
+
+    - name: Map scoped_type to task filename
+      ansible.builtin.set_fact:
+        scoped_task_file: >-
+          {{
+            {
+              'vrfs':                  'vrf.yml',
+              'bridge_domains':        'bridge_domain.yml',
+              'application_profiles':  'application_profile.yml',
+              'epgs':                  'epg.yml',
+              'contracts':             'contract.yml'
+            }[scoped_type]
+          }}
+
+    - name: "Run scoped task: {{ scoped_task_file }}"
+      include_tasks: "{{ scoped_task_file }}"
+
   when: target_file | length > 0
 
-# Scoped deploy — only the matched object type loads
-- include_tasks: vrf.yml
-  when: scoped_type is defined and scoped_type == 'vrfs'
+# Full reconcile — load all object types in order
+- block:
+    - include_tasks: vrf.yml
+    - include_tasks: bridge_domain.yml
+    - include_tasks: application_profile.yml
+    - include_tasks: epg.yml
+    - include_tasks: contract.yml
 
-- include_tasks: bridge_domain.yml
-  when: scoped_type is defined and scoped_type == 'bridge_domains'
-
-- include_tasks: application_profile.yml
-  when: scoped_type is defined and scoped_type == 'application_profiles'
-
-- include_tasks: epg.yml
-  when: scoped_type is defined and scoped_type == 'epgs'
-
-- include_tasks: contract.yml
-  when: scoped_type is defined and scoped_type == 'contracts'
-
-# Full tenant reconciliation — no intent_file set
-- include_tasks: vrf.yml
-  when: target_file | length == 0
-
-- include_tasks: bridge_domain.yml
-  when: target_file | length == 0
-
-- include_tasks: application_profile.yml
-  when: target_file | length == 0
-
-- include_tasks: epg.yml
-  when: target_file | length == 0
-
-- include_tasks: contract.yml
   when: target_file | length == 0
