@@ -1,27 +1,20 @@
 ---
-# Routes to the correct task set based on deploy_mode.
-# deploy_mode is auto-detected from the intent file path by deploy_combined.yml.
+# Single dispatcher — builds the task filename from deploy_mode.
+# No when conditions, no skips. Only the matched file loads.
 
-# ── Tenant only ───────────────────────────────────────────────────────────────
-- include_tasks: tenant.yml
-  when: deploy_mode == 'tenant'
+- name: Map deploy_mode to task file
+  ansible.builtin.set_fact:
+    dispatch_file: >-
+      {{
+        {
+          'tenant':      'tenant.yml',
+          'static_path': 'static_path.yml',
+          'vpc':         'vpc.yml',
+          'l2out':       'l2out.yml',
+          'l3out':       'l3out.yml',
+          'main':        '_main_objects.yml'
+        }[deploy_mode | default('main')]
+      }}
 
-# ── UC1: Static path binding ──────────────────────────────────────────────────
-- include_tasks: static_path.yml
-  when: deploy_mode == 'static_path'
-
-# ── UC2: vPC port channel ─────────────────────────────────────────────────────
-- include_tasks: vpc.yml
-  when: deploy_mode == 'vpc'
-
-# ── UC3: L2Out ────────────────────────────────────────────────────────────────
-- include_tasks: l2out.yml
-  when: deploy_mode == 'l2out'
-
-# ── UC4: L3Out ────────────────────────────────────────────────────────────────
-- include_tasks: l3out.yml
-  when: deploy_mode == 'l3out'
-
-# ── Tenant objects: VRF, BD, AP, EPG, contract ───────────────────────────────
-- include_tasks: _main_objects.yml
-  when: deploy_mode == 'main' or deploy_mode is not defined
+- name: "Dispatch → {{ dispatch_file }}"
+  include_tasks: "{{ dispatch_file }}"
