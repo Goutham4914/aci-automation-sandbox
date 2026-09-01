@@ -2,7 +2,9 @@
 - name: Detect deploy mode from file path
   ansible.builtin.set_fact:
     detected_mode: >-
-      {%- if '/static_paths/' in item -%}
+      {%- if item.endswith('tenant.yml') -%}
+      tenant
+      {%- elif '/static_paths/' in item -%}
       static_path
       {%- elif '/vpc_policy_groups/' in item -%}
       vpc

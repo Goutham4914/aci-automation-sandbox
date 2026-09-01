@@ -1,14 +1,17 @@
 ---
-# Routes to the correct task set based on deploy_mode passed from AWX.
-# deploy_mode=main runs tenant object tasks (BD, AP, EPG, contract).
-# All other modes run their own self-contained task file.
+# Routes to the correct task set based on deploy_mode.
+# deploy_mode is auto-detected from the intent file path by deploy_combined.yml.
+
+# ── Tenant only ───────────────────────────────────────────────────────────────
+- include_tasks: tenant.yml
+  when: deploy_mode == 'tenant'
 
 # ── UC1: Static path binding ──────────────────────────────────────────────────
-- import_tasks: static_path.yml
+- include_tasks: static_path.yml
   when: deploy_mode == 'static_path'
 
 # ── UC2: vPC port channel ─────────────────────────────────────────────────────
-- import_tasks: vpc.yml
+- include_tasks: vpc.yml
   when: deploy_mode == 'vpc'
 
 # ── UC3: L2Out ────────────────────────────────────────────────────────────────
@@ -21,7 +24,7 @@
 
 # ── Tenant objects: VRF, BD, AP, EPG, contract ───────────────────────────────
 - block:
-    - import_tasks: tenant.yml
+    - include_tasks: tenant.yml
 
     - name: Determine scoped object type
       ansible.builtin.set_fact:
@@ -29,36 +32,36 @@
           {{ target_file | regex_search('/(vrfs|bridge_domains|application_profiles|contracts|epgs)/') | regex_replace('/', '') }}
       when: target_file | length > 0
 
-    # Scoped deploy — single file
-    - import_tasks: vrf.yml
+    # Scoped deploy — only the matched object type runs
+    - include_tasks: vrf.yml
       when: target_file | length > 0 and scoped_type == 'vrfs'
 
-    - import_tasks: bridge_domain.yml
+    - include_tasks: bridge_domain.yml
       when: target_file | length > 0 and scoped_type == 'bridge_domains'
 
-    - import_tasks: application_profile.yml
+    - include_tasks: application_profile.yml
       when: target_file | length > 0 and scoped_type == 'application_profiles'
 
-    - import_tasks: epg.yml
+    - include_tasks: epg.yml
       when: target_file | length > 0 and scoped_type == 'epgs'
 
-    - import_tasks: contract.yml
+    - include_tasks: contract.yml
       when: target_file | length > 0 and scoped_type == 'contracts'
 
     # Full tenant reconciliation — no intent_file set
-    - import_tasks: vrf.yml
+    - include_tasks: vrf.yml
       when: target_file | length == 0
 
-    - import_tasks: bridge_domain.yml
+    - include_tasks: bridge_domain.yml
       when: target_file | length == 0
 
-    - import_tasks: application_profile.yml
+    - include_tasks: application_profile.yml
       when: target_file | length == 0
 
-    - import_tasks: epg.yml
+    - include_tasks: epg.yml
       when: target_file | length == 0
 
-    - import_tasks: contract.yml
+    - include_tasks: contract.yml
       when: target_file | length == 0
 
   when: deploy_mode == 'main' or deploy_mode is not defined
