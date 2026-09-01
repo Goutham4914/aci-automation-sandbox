@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ACI Ansible Deploy Flow - Bridge Domain Example</title>
+  <title>ACI Ansible Deploy Flow</title>
   <style>
     body {
       margin: 0;
@@ -12,207 +12,306 @@
       background: #ffffff;
       color: #1a1a1a;
     }
-    h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px 0; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
     .subtitle { font-size: 13px; color: #666; margin-bottom: 28px; }
     svg { display: block; margin: 0 auto; }
-    .label { font-size: 13px; font-weight: 500; fill: #1a1a1a; text-anchor: middle; dominant-baseline: middle; }
-    .label-sm { font-size: 11px; fill: #555; text-anchor: middle; dominant-baseline: middle; }
-    .section { font-size: 11px; font-weight: 700; fill: #888; letter-spacing: 0.8px; text-anchor: start; }
-    .edge { stroke: #94a3b8; stroke-width: 1.8; fill: none; marker-end: url(#arr); }
-    .edge-yes { stroke: #10b981; stroke-width: 1.8; fill: none; marker-end: url(#arr-g); }
-    .edge-label { font-size: 11px; font-weight: 600; fill: #10b981; text-anchor: middle; }
-    .edge-label-gray { font-size: 11px; font-weight: 600; fill: #94a3b8; text-anchor: middle; }
-    .legend-box { display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; margin-top: 12px; }
-    .legend-item { display: flex; align-items: center; gap: 6px; }
-    .legend-swatch { width: 18px; height: 14px; border-radius: 3px; border: 2px solid; }
-    .info { background: #f8fafc; border-radius: 6px; padding: 16px 20px; max-width: 860px; margin: 28px auto 0; }
+    .lbl    { font-size: 13px; font-weight: 500; fill: #1a1a1a; text-anchor: middle; dominant-baseline: middle; }
+    .lbl-sm { font-size: 11px; fill: #444; text-anchor: middle; dominant-baseline: middle; }
+    .lbl-xs { font-size: 10px; fill: #777; text-anchor: middle; dominant-baseline: middle; }
+    .sec    { font-size: 10px; font-weight: 700; fill: #888; letter-spacing: 0.8px; }
+    .edge      { stroke: #94a3b8; stroke-width: 1.8; fill: none; marker-end: url(#arr); }
+    .edge-g    { stroke: #10b981; stroke-width: 1.8; fill: none; marker-end: url(#arr-g); }
+    .edge-lbl  { font-size: 11px; font-weight: 600; fill: #10b981; text-anchor: middle; }
+    .edge-lbl2 { font-size: 11px; font-weight: 600; fill: #94a3b8; text-anchor: middle; }
+    .info { background: #f8fafc; border-radius: 6px; padding: 16px 20px; max-width: 1100px; margin: 28px auto 0; }
     .info-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .legend { display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; margin-top: 10px; }
+    .li { display: flex; align-items: center; gap: 6px; }
+    .sw { width: 18px; height: 14px; border-radius: 3px; border: 2px solid; display:inline-block; }
     ul { margin: 0; padding-left: 18px; }
     li { font-size: 12px; color: #555; line-height: 1.7; }
+    pre { font-size: 11px; background: #f1f5f9; padding: 10px; border-radius: 4px; overflow-x: auto; }
   </style>
 </head>
 <body>
-  <h1>Ansible Execution Flow — deploy.yml</h1>
-  <div class="subtitle">Example: Creating a Bridge Domain (TEST-BD) on the sandbox APIC</div>
+  <h1>Ansible Execution Flow — deploy_combined.yml</h1>
+  <div class="subtitle">Single entry point — auto-detects deploy mode from each intent file path</div>
 
-  <svg width="900" height="1580" viewBox="0 0 900 1580">
+  <!--
+    Layout columns (centre x):
+      LEFT  (vpc):         160
+      CENTRE (main flow):  560
+      RIGHT  (static):     960
+    Canvas: 1120 x 1900
+  -->
+  <svg width="1120" height="1900" viewBox="0 0 1120 1900">
     <defs>
-      <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-        <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
-      </marker>
-      <marker id="arr-g" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-        <polygon points="0 0,8 3,0 6" fill="#10b981"/>
-      </marker>
+      <marker id="arr"   markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker>
+      <marker id="arr-g" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10b981"/></marker>
     </defs>
 
-    <!-- ── START ─────────────────────────────────────────── -->
-    <rect x="300" y="20" width="300" height="52" rx="26" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
-    <text class="label" x="450" y="42">User runs ansible-playbook</text>
-    <text class="label-sm" x="450" y="58">deploy_env=sandbox  deploy_mode=main</text>
-    <text class="label-sm" x="450" y="73" dy="-2">intent_file=…/TEST-BD.yml</text>
+    <!-- ═══════════════════════════════════════════════════════════════
+         START
+    ════════════════════════════════════════════════════════════════ -->
+    <rect x="380" y="20" width="360" height="70" rx="35" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+    <text class="lbl" x="560" y="44">User runs ansible-playbook</text>
+    <text class="lbl-sm" x="560" y="62">deploy_combined.yml</text>
+    <text class="lbl-xs" x="560" y="78">deploy_env=sandbox   tenant_path=…/TEST-TENANT</text>
+    <text class="lbl-xs" x="560" y="90">intent_files=TEST-BD.yml, HOST01.yml, SERVER01-vPC.yml</text>
 
-    <line class="edge" x1="450" y1="72" x2="450" y2="105"/>
+    <line class="edge" x1="560" y1="90" x2="560" y2="122"/>
 
-    <!-- ── SECTION: Playbook ─────────────────────────────── -->
-    <text class="section" x="30" y="128">PLAYBOOK  deploy.yml</text>
-    <line x1="30" y1="132" x2="870" y2="132" stroke="#e2e8f0" stroke-width="1"/>
+    <!-- ═══════════════════════════════════════════════════════════════
+         SECTION: Playbook
+    ════════════════════════════════════════════════════════════════ -->
+    <line x1="20" y1="136" x2="1100" y2="136" stroke="#e2e8f0" stroke-width="1"/>
+    <text class="sec" x="20" y="130">PLAYBOOK  deploy_combined.yml</text>
 
     <!-- Resolve host -->
-    <rect x="300" y="108" width="300" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="450" y="128">Resolve target host</text>
-    <text class="label-sm" x="450" y="145">hosts: "{{ deploy_env }}_apic"  →  sandbox_apic</text>
+    <rect x="380" y="140" width="360" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="158">Resolve target host</text>
+    <text class="lbl-sm" x="560" y="175">hosts: "{{ deploy_env }}_apic"  →  sandbox_apic</text>
+    <line class="edge" x1="560" y1="190" x2="560" y2="220"/>
 
-    <line class="edge" x1="450" y1="160" x2="450" y2="192"/>
+    <!-- Normalize -->
+    <rect x="380" y="220" width="360" height="58" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="240">Normalize intent_files  →  list</text>
+    <text class="lbl-sm" x="560" y="257">string / comma-separated / YAML list</text>
+    <text class="lbl-xs" x="560" y="272">[TEST-BD.yml,  HOST01.yml,  SERVER01-vPC.yml]</text>
+    <line class="edge" x1="560" y1="278" x2="560" y2="308"/>
 
-    <!-- Load tenant.yml -->
-    <rect x="300" y="192" width="300" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="450" y="212">pre_task: Load tenant manifest</text>
-    <text class="label-sm" x="450" y="229">include_vars: tenant.yml  →  tenant.name = TEST-TENANT</text>
+    <!-- Load tenant -->
+    <rect x="380" y="308" width="360" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="326">pre_task: Load tenant manifest</text>
+    <text class="lbl-sm" x="560" y="343">tenant.yml  →  tenant.name = TEST-TENANT</text>
+    <line class="edge" x1="560" y1="358" x2="560" y2="388"/>
 
-    <line class="edge" x1="450" y1="244" x2="450" y2="276"/>
+    <!-- ═══════════════════════════════════════════════════════════════
+         SECTION: Loop
+    ════════════════════════════════════════════════════════════════ -->
+    <line x1="20" y1="400" x2="1100" y2="400" stroke="#e2e8f0" stroke-width="1"/>
+    <text class="sec" x="20" y="394">LOOP — for each file in intent_files</text>
 
-    <!-- Load intent file -->
-    <rect x="300" y="276" width="300" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="450" y="296">pre_task: Load intent file</text>
-    <text class="label-sm" x="450" y="313">include_vars: TEST-BD.yml  →  bd.name, bd.vrf, bd.subnets</text>
+    <!-- Loop box -->
+    <rect x="380" y="404" width="360" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="422">Loop: Deploy each intent file</text>
+    <text class="lbl-sm" x="560" y="439">Iterates over normalized_files list</text>
+    <line class="edge" x1="560" y1="454" x2="560" y2="484"/>
 
-    <line class="edge" x1="450" y1="328" x2="450" y2="360"/>
+    <!-- Detect mode -->
+    <rect x="380" y="484" width="360" height="58" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="504">Detect deploy_mode from path</text>
+    <text class="lbl-sm" x="560" y="521">set_fact: detected_mode</text>
+    <text class="lbl-xs" x="560" y="536">Scans item path for known folder name</text>
+    <line class="edge" x1="560" y1="542" x2="560" y2="578"/>
 
-    <!-- ── SECTION: Role ──────────────────────────────────── -->
-    <text class="section" x="30" y="382">ROLE  aci_desired_state  /  tasks/main.yml</text>
-    <line x1="30" y1="386" x2="870" y2="386" stroke="#e2e8f0" stroke-width="1"/>
+    <!-- Decision: path contains? -->
+    <polygon points="560,578 730,622 560,666 390,622" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text class="lbl" x="560" y="616">Path contains?</text>
+    <text class="lbl-xs" x="560" y="634">/bridge_domains/  /vrfs/  /static_paths/  /vpc_policy_groups/</text>
 
-    <!-- Enter role -->
-    <rect x="300" y="362" width="300" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="450" y="382">Enter role aci_desired_state</text>
-    <text class="label-sm" x="450" y="399">tenant_dir, target_file, deploy_mode=main</text>
+    <!-- ── branch: static_path (RIGHT) -->
+    <path class="edge" d="M 730 622 L 960 622 L 960 720"/>
+    <text class="edge-lbl2" x="858" y="614">/static_paths/  →  static_path</text>
 
-    <line class="edge" x1="450" y1="414" x2="450" y2="452"/>
+    <!-- ── branch: vpc (LEFT) -->
+    <path class="edge" d="M 390 622 L 160 622 L 160 720"/>
+    <text class="edge-lbl2" x="262" y="614">/vpc_policy_groups/  →  vpc</text>
 
-    <!-- Decision: deploy_mode -->
-    <polygon points="450,452 600,492 450,532 300,492" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-    <text class="label" x="450" y="488">deploy_mode?</text>
-    <text class="label-sm" x="450" y="505">main / static_path / vpc</text>
+    <!-- ── branch: main (DOWN) -->
+    <path class="edge-g" d="M 560 666 L 560 720"/>
+    <text class="edge-lbl" x="580" y="694">main</text>
 
-    <!-- YES down -->
-    <line class="edge-yes" x1="450" y1="532" x2="450" y2="564"/>
-    <text class="edge-label" x="462" y="550">main</text>
+    <!-- ═══════════════════════════════════════════════════════════════
+         SECTION: Role entry (all three branches converge here)
+    ════════════════════════════════════════════════════════════════ -->
+    <line x1="20" y1="712" x2="1100" y2="712" stroke="#e2e8f0" stroke-width="1"/>
+    <text class="sec" x="20" y="706">ROLE  aci_desired_state</text>
 
-    <!-- ── SECTION: Tenant objects ────────────────────────── -->
-    <text class="section" x="30" y="586">TENANT OBJECTS  (deploy_mode = main)</text>
-    <line x1="30" y1="590" x2="870" y2="590" stroke="#e2e8f0" stroke-width="1"/>
+    <!-- Load intent vars (centre) -->
+    <rect x="380" y="720" width="360" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="738">Load intent file vars</text>
+    <text class="lbl-sm" x="560" y="755">include_vars → bd / vrf / static_path / vpc</text>
+
+    <!-- left and right branches feed into load vars -->
+    <path class="edge" d="M 960 720 L 960 700 L 740 700 L 740 720"/>
+    <path class="edge" d="M 160 720 L 160 700 L 380 700 L 380 720"/>
+
+    <line class="edge" x1="560" y1="770" x2="560" y2="800"/>
+
+    <!-- Role tasks/main.yml -->
+    <rect x="380" y="800" width="360" height="58" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="820">Role: tasks/main.yml</text>
+    <text class="lbl-sm" x="560" y="837">tenant_dir, target_file</text>
+    <text class="lbl-sm" x="560" y="852">deploy_mode = detected_mode</text>
+    <line class="edge" x1="560" y1="858" x2="560" y2="894"/>
+
+    <!-- Decision: route by deploy_mode -->
+    <polygon points="560,894 730,934 560,974 390,934" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text class="lbl" x="560" y="930">Route by deploy_mode</text>
+    <text class="lbl-xs" x="560" y="948">tasks/main.yml  when: conditions</text>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         SECTION: Three separate columns below the router
+    ════════════════════════════════════════════════════════════════ -->
+    <line x1="20" y1="990" x2="1100" y2="990" stroke="#e2e8f0" stroke-width="1"/>
+    <text class="sec" x="20" y="984">TASK EXECUTION</text>
+
+    <!-- ── CENTRE: main ─────────────────────────── cx=560 -->
+    <path class="edge-g" d="M 560 974 L 560 1000"/>
+    <text class="edge-lbl" x="580" y="990">main</text>
 
     <!-- aci_tenant -->
-    <rect x="300" y="564" width="300" height="52" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
-    <text class="label" x="450" y="584">aci_tenant  (API call)</text>
-    <text class="label-sm" x="450" y="601">Create / update  TEST-TENANT</text>
+    <rect x="400" y="1000" width="320" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="560" y="1018">aci_tenant  (API call)</text>
+    <text class="lbl-sm" x="560" y="1035">Create / update TEST-TENANT</text>
+    <line class="edge" x1="560" y1="1050" x2="560" y2="1086"/>
 
-    <line class="edge" x1="450" y1="616" x2="450" y2="652"/>
+    <!-- Decision: scoped? -->
+    <polygon points="560,1086 700,1122 560,1158 420,1122" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text class="lbl" x="560" y="1118">target_file set?</text>
+    <text class="lbl-xs" x="560" y="1136">scoped vs full reconcile</text>
 
-    <!-- Decision: target_file -->
-    <polygon points="450,652 600,692 450,732 300,692" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-    <text class="label" x="450" y="688">intent_file set?</text>
-    <text class="label-sm" x="450" y="705">scoped  vs  full reconcile</text>
+    <!-- Scoped YES → goes right within main column -->
+    <path class="edge-g" d="M 700 1122 L 780 1122 L 780 1180"/>
+    <text class="edge-lbl" x="748" y="1114">YES</text>
 
-    <!-- ── SCOPED PATH (right) ───────────────────────────── -->
-    <path class="edge-yes" d="M 600 692 L 710 692 L 710 760"/>
-    <text class="edge-label" x="668" y="684">YES — scoped</text>
+    <rect x="700" y="1180" width="180" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="790" y="1198">scoped_type</text>
+    <text class="lbl-sm" x="790" y="1215">regex → bridge_domains</text>
+    <line class="edge" x1="790" y1="1230" x2="790" y2="1260"/>
 
-    <rect x="610" y="760" width="210" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="715" y="780">Determine object type</text>
-    <text class="label-sm" x="715" y="797">regex on path → bridge_domains</text>
+    <rect x="700" y="1260" width="180" height="58" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="790" y="1280">aci_bd</text>
+    <text class="lbl-sm" x="790" y="1297">aci_bd_subnet</text>
+    <text class="lbl-xs" x="790" y="1312">(API calls)</text>
+    <path class="edge" d="M 790 1318 L 790 1420 L 560 1420 L 560 1450"/>
 
-    <line class="edge" x1="715" y1="812" x2="715" y2="844"/>
+    <!-- Full NO → goes left within main column -->
+    <path class="edge" d="M 420 1122 L 340 1122 L 340 1180"/>
+    <text class="edge-lbl2" x="374" y="1114">NO</text>
 
-    <rect x="610" y="844" width="210" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="715" y="864">import_tasks: bridge_domain.yml</text>
-    <text class="label-sm" x="715" y="881">when scoped_type == bridge_domains</text>
+    <rect x="240" y="1180" width="200" height="58" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="340" y="1200">All objects</text>
+    <text class="lbl-sm" x="340" y="1217">VRF → BD → AP</text>
+    <text class="lbl-sm" x="340" y="1234">EPG → contract</text>
+    <path class="edge" d="M 340 1238 L 340 1420 L 560 1420 L 560 1450"/>
 
-    <!-- merge back -->
-    <path class="edge" d="M 715 896 L 715 980 L 450 980 L 450 1010"/>
+    <!-- ── RIGHT: static_path ────────────────────── cx=960 -->
+    <path class="edge" d="M 730 934 L 960 934 L 960 1000"/>
+    <text class="edge-lbl2" x="858" y="926">static_path</text>
 
-    <!-- ── FULL RECONCILE PATH (left) ───────────────────── -->
-    <path class="edge" d="M 300 692 L 190 692 L 190 760"/>
-    <text class="edge-label-gray" x="238" y="684">NO — full</text>
+    <rect x="840" y="1000" width="220" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="950" y="1018">VLAN pool + encap blocks</text>
+    <text class="lbl-sm" x="950" y="1035">(API calls)</text>
+    <line class="edge" x1="950" y1="1050" x2="950" y2="1080"/>
 
-    <rect x="80" y="760" width="210" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="185" y="780">import_tasks: vrf.yml</text>
-    <text class="label-sm" x="185" y="797">Find all VRF files, apply each</text>
+    <rect x="840" y="1080" width="220" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="950" y="1098">Domain + AEP</text>
+    <text class="lbl-sm" x="950" y="1115">(API calls)</text>
+    <line class="edge" x1="950" y1="1130" x2="950" y2="1160"/>
 
-    <line class="edge" x1="185" y1="812" x2="185" y2="844"/>
+    <rect x="840" y="1160" width="220" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="950" y="1178">Interface policy group</text>
+    <text class="lbl-sm" x="950" y="1195">(API call)</text>
+    <line class="edge" x1="950" y1="1210" x2="950" y2="1240"/>
 
-    <rect x="80" y="844" width="210" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="185" y="864">import_tasks: bridge_domain.yml</text>
-    <text class="label-sm" x="185" y="881">Find all BD files, apply each</text>
+    <rect x="840" y="1240" width="220" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="950" y="1258">Leaf IntP + Interface selector</text>
+    <text class="lbl-sm" x="950" y="1275">(API calls)</text>
+    <line class="edge" x1="950" y1="1290" x2="950" y2="1320"/>
 
-    <!-- merge back -->
-    <path class="edge" d="M 185 896 L 185 980 L 450 980 L 450 1010"/>
+    <rect x="840" y="1320" width="220" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="950" y="1338">Switch profile + Leaf selector</text>
+    <text class="lbl-sm" x="950" y="1355">(API calls)</text>
+    <line class="edge" x1="950" y1="1370" x2="950" y2="1400"/>
 
-    <!-- ── SECTION: BD task file ──────────────────────────── -->
-    <text class="section" x="30" y="1032">TASK FILE  bridge_domain.yml</text>
-    <line x1="30" y1="1036" x2="870" y2="1036" stroke="#e2e8f0" stroke-width="1"/>
+    <rect x="840" y="1400" width="220" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="950" y="1418">EPG static path binding</text>
+    <text class="lbl-sm" x="950" y="1435">(API call)</text>
+    <path class="edge" d="M 950 1450 L 950 1480 L 560 1480 L 560 1450"/>
 
-    <!-- Find BD files -->
-    <rect x="300" y="1010" width="300" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="450" y="1030">ansible.builtin.find</text>
-    <text class="label-sm" x="450" y="1047">Search bridge_domains/  →  TEST-BD.yml</text>
+    <!-- ── LEFT: vpc ─────────────────────────────── cx=160 -->
+    <path class="edge" d="M 390 934 L 160 934 L 160 1000"/>
+    <text class="edge-lbl2" x="262" y="926">vpc</text>
 
-    <line class="edge" x1="450" y1="1062" x2="450" y2="1094"/>
+    <rect x="60" y="1000" width="200" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="160" y="1018">VLAN pool + Domain + AEP</text>
+    <text class="lbl-sm" x="160" y="1035">(API calls)</text>
+    <line class="edge" x1="160" y1="1050" x2="160" y2="1080"/>
 
-    <!-- Loop _apply_bd -->
-    <rect x="300" y="1094" width="300" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="450" y="1114">Loop: include_tasks _apply_bd.yml</text>
-    <text class="label-sm" x="450" y="1131">For each BD file found</text>
+    <rect x="60" y="1080" width="200" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="160" y="1098">vPC protection group</text>
+    <text class="lbl-sm" x="160" y="1115">(API call)</text>
+    <line class="edge" x1="160" y1="1130" x2="160" y2="1160"/>
 
-    <line class="edge" x1="450" y1="1146" x2="450" y2="1178"/>
+    <rect x="60" y="1160" width="200" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="160" y="1178">vPC interface policy group</text>
+    <text class="lbl-sm" x="160" y="1195">(API call)</text>
+    <line class="edge" x1="160" y1="1210" x2="160" y2="1240"/>
 
-    <!-- ── SECTION: _apply_bd ─────────────────────────────── -->
-    <text class="section" x="30" y="1200">APPLY FILE  _apply_bd.yml</text>
-    <line x1="30" y1="1204" x2="870" y2="1204" stroke="#e2e8f0" stroke-width="1"/>
+    <rect x="60" y="1240" width="200" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="160" y="1258">Leaf IntP + Interface selector</text>
+    <text class="lbl-sm" x="160" y="1275">(API calls)</text>
+    <line class="edge" x1="160" y1="1290" x2="160" y2="1320"/>
 
-    <!-- Load BD vars -->
-    <rect x="300" y="1178" width="300" height="52" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text class="label" x="450" y="1198">Load BD vars from file</text>
-    <text class="label-sm" x="450" y="1215">include_vars: TEST-BD.yml  →  bd_data.bd</text>
+    <rect x="60" y="1320" width="200" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="160" y="1338">Switch profile + Leaf selectors</text>
+    <text class="lbl-sm" x="160" y="1355">(both leaves)</text>
+    <line class="edge" x1="160" y1="1370" x2="160" y2="1400"/>
 
-    <line class="edge" x1="450" y1="1230" x2="450" y2="1262"/>
+    <rect x="60" y="1400" width="200" height="50" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+    <text class="lbl" x="160" y="1418">EPG vPC static binding</text>
+    <text class="lbl-sm" x="160" y="1435">(API call)</text>
+    <path class="edge" d="M 160 1450 L 160 1480 L 560 1480 L 560 1450"/>
 
-    <!-- aci_bd -->
-    <rect x="300" y="1262" width="300" height="60" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
-    <text class="label" x="450" y="1282">aci_bd  (API call to APIC)</text>
-    <text class="label-sm" x="450" y="1299">tenant: TEST-TENANT</text>
-    <text class="label-sm" x="450" y="1314">bd: TEST-BD   vrf: TEST-VRF</text>
+    <!-- ═══════════════════════════════════════════════════════════════
+         LOOP CONTROL
+    ════════════════════════════════════════════════════════════════ -->
+    <line x1="20" y1="1466" x2="1100" y2="1466" stroke="#e2e8f0" stroke-width="1"/>
+    <text class="sec" x="20" y="1460">LOOP CONTROL</text>
 
-    <line class="edge" x1="450" y1="1322" x2="450" y2="1354"/>
+    <rect x="380" y="1470" width="360" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text class="lbl" x="560" y="1488">More files in intent_files?</text>
+    <text class="lbl-sm" x="560" y="1505">Loop back for next file</text>
 
-    <!-- aci_bd_subnet -->
-    <rect x="300" y="1354" width="300" height="60" rx="4" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
-    <text class="label" x="450" y="1374">aci_bd_subnet  (API call to APIC)</text>
-    <text class="label-sm" x="450" y="1391">Loop over subnets</text>
-    <text class="label-sm" x="450" y="1406">gateway: 192.168.100.1   mask: 24</text>
+    <!-- loop-back arrow up the right side -->
+    <path class="edge" d="M 740 1495 L 1080 1495 L 1080 527 L 740 527" stroke="#94a3b8" stroke-dasharray="6,3"/>
+    <text class="edge-lbl2" x="1090" y="1010">next file</text>
 
-    <line class="edge" x1="450" y1="1414" x2="450" y2="1446"/>
+    <line class="edge" x1="560" y1="1520" x2="560" y2="1552"/>
 
-    <!-- END -->
-    <rect x="300" y="1446" width="300" height="52" rx="26" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
-    <text class="label" x="450" y="1466">✓  Bridge Domain created on APIC</text>
-    <text class="label-sm" x="450" y="1483">TEST-TENANT / TEST-BD / 192.168.100.1/24</text>
+    <!-- ═══════════════════════════════════════════════════════════════
+         END
+    ════════════════════════════════════════════════════════════════ -->
+    <rect x="360" y="1552" width="400" height="62" rx="31" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+    <text class="lbl" x="560" y="1572">✓  All objects deployed</text>
+    <text class="lbl-sm" x="560" y="1590">TEST-TENANT / TEST-VRF / TEST-BD / TEST-AP / TEST-EPG</text>
+    <text class="lbl-xs" x="560" y="1606">+ static path  +  vPC port channel</text>
+
   </svg>
 
   <div class="info">
     <div class="info-title">Color legend</div>
-    <div class="legend-box">
-      <div class="legend-item"><div class="legend-swatch" style="background:#e0e7ff;border-color:#6366f1"></div> Start / End</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#dbeafe;border-color:#3b82f6"></div> Ansible action</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#fef3c7;border-color:#f59e0b"></div> Decision</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#dcfce7;border-color:#10b981"></div> API call to APIC</div>
+    <div class="legend">
+      <div class="li"><span class="sw" style="background:#e0e7ff;border-color:#6366f1"></span> Start / End</div>
+      <div class="li"><span class="sw" style="background:#dbeafe;border-color:#3b82f6"></span> Ansible action / decision logic</div>
+      <div class="li"><span class="sw" style="background:#fef3c7;border-color:#f59e0b"></span> Decision point</div>
+      <div class="li"><span class="sw" style="background:#dcfce7;border-color:#10b981"></span> API call to APIC</div>
     </div>
-    <div class="info-title" style="margin-top:16px">Key decision points</div>
+    <div class="info-title" style="margin-top:16px">Auto-detection rules</div>
     <ul>
-      <li><strong>deploy_mode</strong> — routes to static_path.yml, vpc.yml, or the main tenant-objects block</li>
-      <li><strong>intent_file set?</strong> — scoped deploy runs only the matching object type; full reconcile processes every file under tenant_dir</li>
-      <li><strong>scoped_type</strong> — extracted from the file path (bridge_domains → bridge_domain.yml) so only that task runs</li>
+      <li><strong>/vrfs/ /bridge_domains/ /epgs/ /application_profiles/ /contracts/</strong> → deploy_mode=<strong>main</strong></li>
+      <li><strong>/static_paths/</strong> → deploy_mode=<strong>static_path</strong></li>
+      <li><strong>/vpc_policy_groups/</strong> → deploy_mode=<strong>vpc</strong></li>
     </ul>
+    <div class="info-title" style="margin-top:16px">Example command</div>
+    <pre>ansible-playbook playbooks/deploy_combined.yml \
+  -e deploy_env=sandbox \
+  -e tenant_path=intent/sandbox/tenants/TEST-TENANT \
+  -e "intent_files=intent/.../vrfs/TEST-VRF.yml,intent/.../bridge_domains/TEST-BD.yml,intent/.../static_paths/HOST01-eth1-1.yml" \
+  -e change_id=CHG-001</pre>
   </div>
+
 </body>
 </html>

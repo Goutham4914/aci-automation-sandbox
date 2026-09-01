@@ -1,0 +1,28 @@
+---
+- name: Detect deploy mode from file path
+  ansible.builtin.set_fact:
+    detected_mode: >-
+      {%- if '/static_paths/' in item -%}
+      static_path
+      {%- elif '/vpc_policy_groups/' in item -%}
+      vpc
+      {%- elif '/l2out/' in item -%}
+      l2out
+      {%- elif '/l3out/' in item -%}
+      l3out
+      {%- else -%}
+      main
+      {%- endif -%}
+
+- name: Load intent file
+  ansible.builtin.include_vars:
+    file: "{{ playbook_dir }}/../{{ item }}"
+  delegate_to: localhost
+
+- name: Deploy {{ item }} (mode={{ detected_mode }})
+  ansible.builtin.include_role:
+    name: aci_desired_state
+  vars:
+    tenant_dir: "{{ playbook_dir }}/../{{ tenant_path }}"
+    target_file: "{{ item }}"
+    deploy_mode: "{{ detected_mode }}"
