@@ -1,0 +1,43 @@
+---
+# Handles all tenant object deploys (VRF, BD, AP, EPG, contract)
+# Only loaded when deploy_mode=main
+
+- include_tasks: tenant.yml
+
+- name: Determine scoped object type
+  ansible.builtin.set_fact:
+    scoped_type: >-
+      {{ target_file | regex_search('/(vrfs|bridge_domains|application_profiles|contracts|epgs)/') | regex_replace('/', '') }}
+  when: target_file | length > 0
+
+# Scoped deploy — only the matched object type loads
+- include_tasks: vrf.yml
+  when: scoped_type is defined and scoped_type == 'vrfs'
+
+- include_tasks: bridge_domain.yml
+  when: scoped_type is defined and scoped_type == 'bridge_domains'
+
+- include_tasks: application_profile.yml
+  when: scoped_type is defined and scoped_type == 'application_profiles'
+
+- include_tasks: epg.yml
+  when: scoped_type is defined and scoped_type == 'epgs'
+
+- include_tasks: contract.yml
+  when: scoped_type is defined and scoped_type == 'contracts'
+
+# Full tenant reconciliation — no intent_file set
+- include_tasks: vrf.yml
+  when: target_file | length == 0
+
+- include_tasks: bridge_domain.yml
+  when: target_file | length == 0
+
+- include_tasks: application_profile.yml
+  when: target_file | length == 0
+
+- include_tasks: epg.yml
+  when: target_file | length == 0
+
+- include_tasks: contract.yml
+  when: target_file | length == 0
