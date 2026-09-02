@@ -29,12 +29,6 @@
 
   when: target_file | length > 0
 
-# Full reconcile — load all object types in order
-- block:
-    - include_tasks: vrf.yml
-    - include_tasks: bridge_domain.yml
-    - include_tasks: application_profile.yml
-    - include_tasks: epg.yml
-    - include_tasks: contract.yml
-
+# Full reconcile — single include so nothing shows as skipped
+- include_tasks: _full_reconcile.yml
   when: target_file | length == 0

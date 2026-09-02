@@ -1,0 +1,9 @@
+---
+# Full tenant reconciliation — runs all object types in order
+# Only loaded when target_file is not set
+
+- include_tasks: vrf.yml
+- include_tasks: bridge_domain.yml
+- include_tasks: application_profile.yml
+- include_tasks: epg.yml
+- include_tasks: contract.yml
